@@ -42,6 +42,7 @@ class NaiveBayes:
         self.total_words = 0
         self.label_probabilities = {}
         self.label_total_words = {}
+        self.label_occurrences = {}
 
     @property
     def training_file(self):
@@ -167,13 +168,16 @@ class NaiveBayes:
         print("Bewertung: %s " % res["rating"])
         print("Chancen: %s" % res["percentages"])
 
-    def train(self):
+    def train(self, filename=None):
+        if filename is not None:
+            self.filename = filename
         logging.info("Beginning with Training")
         start_time = time.time()
 
         logging.debug("Initializing variables")
         self.label_word_bags = {}
-        label_occurrences = {}
+        self.label_occurrences = {}
+        self.labels = []
         total_length = 0
         self.total_words = 0
         logging.debug("Building label word bags, label occurrences")
@@ -189,11 +193,11 @@ class NaiveBayes:
                 label = line_loaded["label"]
 
                 if label not in self.labels:
-                    label_occurrences[label] = 1
+                    self.label_occurrences[label] = 1
                     self.labels.append(label)
                     self.label_word_bags[label] = {}
                 else:
-                    label_occurrences[label] += 1
+                    self.label_occurrences[label] += 1
 
                 word_bag = self.get_word_bag(text)
                 self.total_words += len(word_bag)
@@ -215,7 +219,7 @@ class NaiveBayes:
         self.label_probabilities = {}
         self.label_total_words = {}
         for label in self.labels:
-            self.label_probabilities[label] = label_occurrences[label] / total_length
+            self.label_probabilities[label] = self.label_occurrences[label] / total_length
             self.label_total_words[label] = sum(self.label_word_bags[label].values())
 
         end_time = time.time()
